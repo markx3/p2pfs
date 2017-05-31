@@ -13,10 +13,10 @@ class Client {
 	private static LinkedList<Metadata> metadados;
 
 	public Client () {
-		peers = new LinkedList<>();
+		//peers = new LinkedList<>();
 		metadados = new LinkedList<>();
 	}
-	
+
 	public static void main(String[] args) {
 		try {
 			URL url = new URL("http://127.0.0.1:9876/p2pfs?wsdl");
@@ -26,9 +26,10 @@ class Client {
 			if(service.helloPeer("teste")) {
 				System.out.println("Oi");
 			}
-			if(service.helloPeer("teste2")) {
-				System.out.println("Oi2");
-			}
+
+			peers = service.getPeers("teste");
+			System.out.println(peers.toString());
+
 			RandomAccessFile raf = new RandomAccessFile("/tmp/teste.txt", "r");
 			Metadata m = new Metadata("teste", raf.length());
 
@@ -54,15 +55,19 @@ class Client {
 				bos.close();
 			}
 			if(remainingBytes > 0) {
-				BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream("split4"));	
+				BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream("split4"));
 				String str = new String(readWrite(raf, bos, remainingBytes), "UTF-8");
 						System.out.println(str);
 				bos.close();
 			}
 			raf.close();
+
+			service.byePeer("teste");
+
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+
 	}
 
 	static byte[] readWrite(RandomAccessFile raf, BufferedOutputStream bw, long numBytes) throws IOException {
