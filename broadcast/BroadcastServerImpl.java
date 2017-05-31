@@ -8,48 +8,23 @@ import java.text.SimpleDateFormat;
 @WebService (endpointInterface = "broadcast.BroadcastServer")
 public class BroadcastServerImpl implements BroadcastServer {
 
-  private LinkedList<Peer> peers = new LinkedList<>();
+  private LinkedList<String> peers = new LinkedList<>();
 
   public BroadcastServerImpl() {
-    // Se a lista de peers iniciar vazia, dá problema na hora de adicionar o primeiro.
-    peers.add(new Peer("root"));
   }
 
   public boolean helloPeer(String addr) {
-    Peer newP = new Peer(addr);
-    int timeoutSum = 0;
-    for (Peer p : peers)
-      timeoutSum += p.timeout;
-    newP.timeout = (timeoutSum/peers.size());
-    peers.add(newP);
+    peers.add(addr);
     return true;
   }
 
   public boolean byePeer(String addr) {
-    for (Peer p : peers) {
-      if (p.addr == addr)
-        peers.remove(p);
-        return true;
-    }
-    return false;
+    peers.remove(addr);
+    return true;
   }
 
   public LinkedList<String> getPeers(String addr) {
-    LinkedList<String> ret = new LinkedList<>();
-    Peer tmp = null;
-    int timeoutSum = 0;
-    for (Peer p : peers) {
-      if (p.addr == addr) {
-        tmp = p;
-        p.timeout++;
-      }
-      timeoutSum += p.timeout;
-      ret.add(p.addr);
-    }
-    if (tmp.timeout < (timeoutSum/peers.size()) - 1 )
-      peers.remove(tmp);
-    ret.remove(tmp.addr);
-    return ret;
+    return peers;
   }
 
   public String currentTime() {
