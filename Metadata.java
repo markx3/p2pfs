@@ -9,6 +9,7 @@ class Metadata {
 	public Metadata(String name, long size) {
 		this.filename = name;
 		this.filesize = size;
+		chunks = new LinkedList<>();
 	}
 
 	public String getFilename() {

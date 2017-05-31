@@ -29,43 +29,47 @@ class Client {
 			if(service.helloPeer("teste2")) {
 				System.out.println("Oi2");
 			}
-			RandomAccessFile raf = new RandomAccessFile("/tmp/teste.txt", "r");
-			Metadata m = new Metadata("teste", raf.length());
-
-			long sizePerChunk = raf.length()/3;
-			long remainingBytes = raf.length() % 3;
-			long maxReadBytes = 64 * 1024; // 8KB
-			for(int i = 1; i <= 3; i++) {
-				BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream("split4"));
-				if(sizePerChunk < maxReadBytes) {
-					long numReads = sizePerChunk / maxReadBytes;
-					long numRemainingReads = sizePerChunk % maxReadBytes;
-					for(int j = 0; j <numReads; j++) {
-						String str = new String(readWrite(raf, bos, maxReadBytes), "UTF-8");
-						System.out.println(str);
-					}
-					if(numRemainingReads > 0) {
-						String str = new String(readWrite(raf, bos, numRemainingReads), "UTF-8");
-						System.out.println(str);
-					}
-				} else {
-					readWrite(raf, bos, sizePerChunk);
-				}
-				bos.close();
-			}
-			if(remainingBytes > 0) {
-				BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream("split4"));	
-				String str = new String(readWrite(raf, bos, remainingBytes), "UTF-8");
-						System.out.println(str);
-				bos.close();
-			}
-			raf.close();
+			readFileToBytes(service);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
 
-	static byte[] readWrite(RandomAccessFile raf, BufferedOutputStream bw, long numBytes) throws IOException {
+	static void readFileToBytes(BroadcastServer service)  throws IOException {
+		RandomAccessFile raf = new RandomAccessFile("/tmp/teste.txt", "r");
+		Metadata m = new Metadata("teste", raf.length());
+
+		long sizePerChunk = raf.length()/3;
+		long remainingBytes = raf.length() % 3;
+		long maxReadBytes = 64 * 1024; // 8KB
+		for(int i = 1; i <= 3; i++) {
+			if(sizePerChunk < maxReadBytes) {
+				long numReads = sizePerChunk / maxReadBytes;
+				long numRemainingReads = sizePerChunk % maxReadBytes;
+				for(int j = 0; j <numReads; j++) {
+					byte[] d = readWrite(raf, maxReadBytes);
+					m.addChunk(new Data(d));
+				}
+				if(numRemainingReads > 0) {
+					byte[] d = readWrite(raf, numRemainingReads);
+					m.addChunk(new Data(d));
+				}
+			} else {
+				byte[] d = readWrite(raf, sizePerChunk);
+				m.addChunk(new Data(d));
+			}
+			
+		}
+		if(remainingBytes > 0) {
+			byte[] d = readWrite(raf, remainingBytes);
+			m.addChunk(new Data(d));
+		}
+		for(int i = 0; i < m.getChunks().size(); i++)
+			System.out.println(new String(m.getChunks().get(i).getData(), "UTF-8"));
+		raf.close();
+	}
+
+	static byte[] readWrite(RandomAccessFile raf, long numBytes) throws IOException {
 		byte[] buf = new byte[(int) numBytes];
 		int val = raf.read(buf);
 		if(val != -1) return buf;
