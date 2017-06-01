@@ -1,4 +1,4 @@
-import java.net.URL;
+import java.net.*;
 import javax.xml.namespace.QName;
 import javax.xml.ws.Service;
 import java.util.*;
@@ -11,6 +11,8 @@ import broadcast.Peer;
 class Client {
 	private static LinkedList<String> peers;
 	private static LinkedList<Metadata> metadados;
+	private static String addr;
+	private static BroadcastServer service;
 
 	public Client () {
 		peers = new LinkedList<>();
@@ -21,18 +23,18 @@ class Client {
 		try {
 			URL url = new URL("http://127.0.0.1:9876/p2pfs?wsdl");
 			QName qname = new QName("http://broadcast/", "BroadcastServerImplService");
+			addr = getIp();
 			Service ws = Service.create(url, qname);
-			BroadcastServer service = ws.getPort(BroadcastServer.class);
-			if(service.helloPeer("teste")) {
+			service = ws.getPort(BroadcastServer.class);
+			if(service.helloPeer(addr)) {
 				System.out.println("Oi");
 			}
-			if(service.helloPeer("teste2")) {
-				System.out.println("Oi2");
-			}
-			peers = service.getPeers("teste");
-			System.out.println(peers.toString());
+			// peers = service.getPeers("teste");
+			new Thread (getPeerList).start();
 			readFileToBytes(service);
-			service.byePeer("teste");
+			while(true);
+
+			// service.byePeer("teste");
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -60,7 +62,7 @@ class Client {
 				byte[] d = readWrite(raf, sizePerChunk);
 				m.addChunk(new Data(d));
 			}
-			
+
 		}
 		if(remainingBytes > 0) {
 			byte[] d = readWrite(raf, remainingBytes);
@@ -77,4 +79,48 @@ class Client {
 		if(val != -1) return buf;
 		return buf;
 	}
+
+	private static Runnable getPeerList = new Runnable () {
+		public void run() {
+			try {
+				while (true) {
+					peers = service.getPeers(addr);
+					System.out.println(peers.toString());
+					Thread.sleep(30000);
+				}
+			} catch (Exception e) {}
+		}
+	};
+
+	public static String getExtIp() throws Exception {
+        URL whatismyip = new URL("http://checkip.amazonaws.com");
+        BufferedReader in = null;
+        try {
+            in = new BufferedReader(new InputStreamReader(
+                    whatismyip.openStream()));
+            String ip = in.readLine();
+            return ip;
+        } finally {
+            if (in != null) {
+                try {
+                    in.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
+	public static String getIp() throws Exception {
+		String ret = null;
+		try {
+            InetAddress ipAddr = InetAddress.getLocalHost();
+			ret = ipAddr.getHostAddress();
+            System.out.println(ret);
+        } catch (UnknownHostException ex) {
+            ex.printStackTrace();
+        }
+		return ret;
+	}
+
 }
