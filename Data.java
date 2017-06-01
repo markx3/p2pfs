@@ -1,8 +1,9 @@
 import java.util.*;
+import java.io.Serializable;
 
 import broadcast.Peer;
 
-class Data {
+class Data implements Serializable {
 	private LinkedList<Peer> peers = new LinkedList<>();
 	private byte[] data = new byte[1024*64];
 
