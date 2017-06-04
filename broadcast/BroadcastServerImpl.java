@@ -4,7 +4,7 @@ import java.util.LinkedList;
 import javax.jws.WebService;
 import java.util.Calendar;
 import java.text.SimpleDateFormat;
-import java.util.logging.Logger;
+import java.util.logging.*;
 
 @WebService (endpointInterface = "broadcast.BroadcastServer")
 public class BroadcastServerImpl implements BroadcastServer {
@@ -12,6 +12,12 @@ public class BroadcastServerImpl implements BroadcastServer {
   private LinkedList<String> peers = new LinkedList<>();
 
   public BroadcastServerImpl() {
+    LOGGER.setLevel(Level.ALL);
+    ConsoleHandler handler = new ConsoleHandler();
+    handler.setFormatter(new SimpleFormatter());
+    handler.setLevel(Level.ALL);
+    LOGGER.addHandler(handler);
+
   }
 
   public boolean helloPeer(String addr) {
