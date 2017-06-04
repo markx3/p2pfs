@@ -28,12 +28,12 @@ public class BroadcastServerImpl implements BroadcastServer {
 
   public boolean byePeer(String addr) {
     peers.remove(addr);
-    LOGGER.info("["+addr+"] abbandoned us! :(");
+    LOGGER.info("["+addr+"] abandoned us! :(");
     return true;
   }
 
   public LinkedList<String> getPeers(String addr) {
-    LOGGER.info("["+addr+"] want the peer list! :O");
+    LOGGER.info("["+addr+"] wants the peer list! :O");
     return peers;
   }
 
