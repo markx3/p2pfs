@@ -4,8 +4,9 @@ import java.util.LinkedList;
 import javax.jws.WebService;
 import java.util.Calendar;
 import java.text.SimpleDateFormat;
+import java.io.Serializable;
 
-public class Peer {
+public class Peer implements Serializable{
 	String addr;
 	int timeout;
 

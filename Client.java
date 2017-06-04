@@ -3,6 +3,7 @@ import javax.xml.namespace.QName;
 import javax.xml.ws.Service;
 import java.util.*;
 import java.io.*;
+import java.nio.file.*;
 
 import broadcast.BroadcastServer;
 import broadcast.Peer;
@@ -10,11 +11,11 @@ import broadcast.Peer;
 
 class Client {
 	private static LinkedList<String> peers;
-	private static LinkedList<Metadata> metadados;
+	private static LinkedList<Metadata> metadados = new LinkedList<>();
 
-	public Client () {
+	public Client () throws IOException, ClassNotFoundException {
 		peers = new LinkedList<>();
-		metadados = new LinkedList<>();
+		if(verifyMetadata()) recoverMetadata();
 	}
 
 	public static void main(String[] args) {
@@ -31,8 +32,10 @@ class Client {
 			}
 			peers = service.getPeers("teste");
 			System.out.println(peers.toString());
+			System.out.println(metadados.get(0).getFilename());
 			readFileToBytes(service);
 			service.byePeer("teste");
+			serializeMetadata();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -68,7 +71,31 @@ class Client {
 		}
 		for(int i = 0; i < m.getChunks().size(); i++)
 			System.out.println(new String(m.getChunks().get(i).getData(), "UTF-8"));
+		metadados.add(m);
 		raf.close();
+	}
+
+	static void serializeMetadata() throws IOException {
+		FileOutputStream idx = new FileOutputStream("/tmp/metadata.bin");
+		ObjectOutputStream oos = new ObjectOutputStream(idx);
+		oos.writeObject(metadados);
+		oos.flush();
+		idx.close();
+		oos.close();
+	}
+
+	private Boolean verifyMetadata() throws IOException, FileNotFoundException {
+		File idx = new File("/tmp/metadata.bin");
+		if(!idx.exists()) return false;
+		return true;
+	}
+
+	private void recoverMetadata() throws IOException, FileNotFoundException, ClassNotFoundException {
+		FileInputStream m = new FileInputStream("/tmp/metadata.bin");
+		ObjectInputStream ois = new ObjectInputStream(m);
+		metadados = (LinkedList<Metadata>) ois.readObject();
+		ois.close();
+		m.close();
 	}
 
 	static byte[] readWrite(RandomAccessFile raf, long numBytes) throws IOException {
