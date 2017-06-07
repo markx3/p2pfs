@@ -1,6 +1,0 @@
-ARQUIVÃO
-	salvar os metadados localmente
-	aí divide o arquivo em n chunks
-	salva eles nos peers
-	aí você pega esses n chunks
-	salva os n chunks nos peers
