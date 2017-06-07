@@ -19,7 +19,7 @@ public class ClientImpl {
 	private Hashtable<String,Metadata> metadados = new Hashtable<String, Metadata>();
 	private String addr;
 	private BroadcastServer service;
-	private ServerSocket listener;
+	private ServerSocket listener = new ServerSocket(9877);
 	private Scanner scanner = new Scanner(System.in);
 	private FileHandler fileHandler = new FileHandler();
 
@@ -38,7 +38,6 @@ public class ClientImpl {
 			service.helloPeer(addr);
 			BroadcastServer service = ws.getPort(BroadcastServer.class);
 			new Thread (getPeerList).start();
-			listener = new ServerSocket(9877);
 			//peers.remove(addr); // pode causar exception
 			//System.out.println(peers.toString());
 			//serializeMetadata();

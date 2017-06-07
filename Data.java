@@ -3,13 +3,13 @@ import java.io.Serializable;
 
 import broadcast.Peer;
 
-class Data implements Serializable {
+public class Data implements Serializable {
 	private LinkedList<String> peers = new LinkedList<>();
 	private byte[] data = new byte[1024*64];
 	private long hash_chunk;
 
 	public Data(byte[] d) {
-		this.peers.add("root");
+		this.peers.add("root"); // TODO Alterar isso quando a distribuição de chunks funcionar!
 		this.data = d;
 	}
 

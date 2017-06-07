@@ -2,7 +2,7 @@ import java.util.*;
 import java.lang.*;
 import java.io.Serializable;
 
-class Metadata implements Serializable {
+public class Metadata implements Serializable {
 	private String filename;
 	private long filesize;
 	private LinkedList<Data> chunks;

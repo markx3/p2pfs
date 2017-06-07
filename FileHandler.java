@@ -53,7 +53,7 @@ public class FileHandler {
     }
 
     public void serializeMetadata(Object o) throws IOException, ClassNotFoundException {
-		FileOutputStream fos = new FileOutputStream("/tmp/metadata.dat");
+		FileOutputStream fos = new FileOutputStream("metadata.dat");
 		ObjectOutputStream oos = new ObjectOutputStream(fos);
 		oos.writeObject(o);
 		oos.flush();
@@ -62,7 +62,7 @@ public class FileHandler {
 	}
 
 	public Hashtable <String,Metadata> recoverMetadata() throws IOException, FileNotFoundException, ClassNotFoundException {
-		FileInputStream fis = new FileInputStream("/tmp/metadata.dat");
+		FileInputStream fis = new FileInputStream("metadata.dat");
 		ObjectInputStream ois = new ObjectInputStream(fis);
 		Hashtable <String,Metadata> aux = (Hashtable<String,Metadata>) ois.readObject();
 		fis.close();
@@ -71,7 +71,7 @@ public class FileHandler {
 	}
 
 	public Boolean verifyMetadata() throws IOException, FileNotFoundException {
-		File file = new File("/tmp/metadata.dat");
+		File file = new File("metadata.dat");
 		if(file.exists()) return true;
 		return false;
 	}
