@@ -5,7 +5,7 @@ import java.io.Serializable;
 class Metadata implements Serializable {
 	private String filename;
 	private long filesize;
-	private LinkedList<Data> chunks; 
+	private LinkedList<Data> chunks;
 
 	public Metadata(String name, long size) {
 		this.filename = name;
@@ -37,5 +37,5 @@ class Metadata implements Serializable {
 		chunks.add(data);
 	}
 
-	
+
 }
