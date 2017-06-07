@@ -4,11 +4,12 @@ import java.io.Serializable;
 import broadcast.Peer;
 
 class Data implements Serializable {
-	private LinkedList<Peer> peers = new LinkedList<>();
+	private LinkedList<String> peers = new LinkedList<>();
 	private byte[] data = new byte[1024*64];
+	private long hash_chunk;
 
 	public Data(byte[] d) {
-		this.peers.add(new Peer("root"));
+		this.peers.add("root");
 		this.data = d;
 	}
 
@@ -16,15 +17,23 @@ class Data implements Serializable {
 		this.data = data;
 	}
 
-	public void addPeer(Peer p) {
-		peers.add(p);
+	public void addPeer(String s) {
+		peers.add(s);
 	}
 
 	public byte[] getData() {
 		return this.data;
 	}
 
-	public LinkedList<Peer> getPeers() {
+	public LinkedList<String> getPeers() {
 		return this.peers;
+	}
+
+	public long getHashChunk() {
+		return this.hash_chunk;
+	}
+
+	public void setHashChunk(long hash_chunk) {
+		this.hash_chunk = hash_chunk;
 	}
 }
