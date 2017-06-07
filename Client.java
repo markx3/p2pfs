@@ -8,6 +8,10 @@ import java.nio.file.*;
 import broadcast.BroadcastServer;
 import broadcast.Peer;
 
+/*
+ * IDEA Usar portas diferentes (pre-definidas) em diferentes ServerSockets
+ * 		p/ diferentes tipos de requisições. Vamos usar TCP ou UDP?
+ */
 
 class Client {
 
@@ -132,7 +136,7 @@ class Client {
 
 	static void readFileToBytes(String filename)  throws IOException {
 		RandomAccessFile raf = new RandomAccessFile(filename, "r");
-		Metadata m = new Metadata("metadado1", raf.length());
+		Metadata m = new Metadata(filename, raf.length());
 		long sizePerChunk = raf.length()/3;
 		long remainingBytes = raf.length() % 3;
 		long maxReadBytes = 64 * 1024; // 8KB
