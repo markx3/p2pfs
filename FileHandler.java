@@ -11,6 +11,7 @@ public class FileHandler {
 
     }
 
+    // TODO Arrumar divisão de chunks.
     public Metadata readFileToBytes(String filename)  throws IOException {
         RandomAccessFile raf = new RandomAccessFile(filename, "r");
         Metadata m = new Metadata(filename, raf.length());
