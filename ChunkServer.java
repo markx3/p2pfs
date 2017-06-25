@@ -16,7 +16,7 @@ public class ChunkServer {
     protected int chunkCount;
     private FileHandler fileHandler = new FileHandler();
     private ServerSocket serverConsumer = new ServerSocket(1252);
-    private final int TIMEOUT = 1000;
+    private final int TIMEOUT = 5000;
 
     private final String ip;
 
@@ -60,7 +60,7 @@ public class ChunkServer {
             try {
                 System.out.println("request to " + ip);
                 Socket s = new Socket(ip, 1251);
-                s.setSoTimeout(TIMEOUT); // 5s timeout
+                s.setSoTimeout(250); // 5s timeout
                 ObjectOutputStream out = new ObjectOutputStream(s.getOutputStream());
                 out.writeObject(hash_chunk);
                 out.flush();
