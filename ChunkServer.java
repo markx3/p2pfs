@@ -39,6 +39,7 @@ public class ChunkServer {
 		int chunkCount = chunks.size();
 		int peerCount = peers.size();
 		int cpp = chunkCount/peerCount;
+        if (chunkCount % peerCount != 0) cpp++;
 		for (String ip : peers) {
             LinkedList<Data> chunksToSend = new LinkedList<Data>();
             for (int i = 0; i < cpp; i++) {
