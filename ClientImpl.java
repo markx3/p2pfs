@@ -7,6 +7,7 @@ import java.nio.file.*;
 
 import broadcast.BroadcastServer;
 import broadcast.Peer;
+import broadcast.Config;
 
 /*
  * IDEA Usar portas diferentes (pre-definidas) em diferentes ServerSockets
@@ -15,13 +16,15 @@ import broadcast.Peer;
 
 public class ClientImpl {
 
+
 	private LinkedList<String> peers;
 	private Hashtable<String,Metadata> metadados = new Hashtable<String, Metadata>();
-	private String addr;
+	public static String addr;
 	private BroadcastServer service;
-	private ServerSocket listener = new ServerSocket(9877);
+	private ChunkServer chunkServer;
 	private Scanner scanner = new Scanner(System.in);
 	private FileHandler fileHandler = new FileHandler();
+
 
 	public ClientImpl () throws IOException, ClassNotFoundException {
 
@@ -29,10 +32,11 @@ public class ClientImpl {
 
 	public void run() {
 		try {
-			if(fileHandler.verifyMetadata()) metadados = fileHandler.recoverMetadata();
-			URL url = new URL("http://127.0.0.1:9876/p2pfs?wsdl");
+			metadados = fileHandler.recoverMetadata();
+			URL url = new URL("http://"+ Config.wsIp + ":9876/p2pfs?wsdl");
 			QName qname = new QName("http://broadcast/", "BroadcastServerImplService");
 			addr = getIp();
+			chunkServer = new ChunkServer(addr);
 			Service ws = Service.create(url, qname);
 			service = ws.getPort(BroadcastServer.class);
 			service.helloPeer(addr);
@@ -53,7 +57,7 @@ public class ClientImpl {
 		}
 	}
 
-	private void menu () throws IOException, ClassNotFoundException {
+	private void menu () throws IOException, ClassNotFoundException, InterruptedException {
 		int opt = -1;
 		System.out.println("\n1 - Armazenar arquivo.\n2 - Requisitar arquivo.\n3 - Listar arquivos.");
 		System.out.println("0 - Sair.\n");
@@ -79,7 +83,9 @@ public class ClientImpl {
 	// Lê um arquivo, transforma em chunks, envia aos peers e serializa
 	// Hashtable de metadados após término das operações.
 	// IDEA Paralelizar envio de chunks aos peers.
-	private boolean storeFile() throws IOException, ClassNotFoundException {
+	// TODO Armazenar apenas nome do arquivo caso usuário passe um caminho.
+	// Ex. /tmp/teste.txt (guardar apenas teste.txt)
+	private boolean storeFile() throws IOException, ClassNotFoundException, NoSuchFileException, DirectoryNotEmptyException, InterruptedException {
 		System.out.println("Insira o caminho para o arquivo.");
 		String filename = scanner.nextLine();
 		File file = new File(filename);
@@ -87,32 +93,33 @@ public class ClientImpl {
 			System.out.println("Arquivo não existe.");
 			return false;
 		}
-		metadados.put(filename, fileHandler.readFileToBytes(filename));
-		deliverChunksToPeers(filename);
-		fileHandler.serializeMetadata(metadados);
-										// TODO Enviar chunks aos peers.
-										// IDEA Após enviar chunks, deletar os
-		return true;					// vetores byte[] de cada chunk do
-										// cliente de origem
+		Metadata tmp = fileHandler.readFileToBytes(filename);
 
-		// TODO Armazenar apenas nome do arquivo caso usuário passe um caminho.
-		// Ex. /tmp/teste.txt (guardar apenas teste.txt)
-	}
+		chunkServer.deliverChunksToPeers(tmp, peers); // Envia chunks aos peers
+		fileHandler.serializeMetadata(tmp); // Serializa o arquivo .sdi p/ persistencia de metadados
+		metadados.put(tmp.getFilename(), tmp); // Coloca metadado numa hashtable
 
-	private boolean deliverChunksToPeers(String filename) {
-		// TODO Método p/ enviar chunks aos peers (preferencialmente de forma
-		// balanceada :>)
+		Files.delete(Paths.get(filename)); // Deleta arquivo original
 		return true;
+
 	}
 
-	private boolean requestFile() {
+	private boolean requestFile() throws FileNotFoundException, IOException, ClassNotFoundException {
 		System.out.println("Insira o nome do arquivo a ser requisitado.");
 		String filename = scanner.nextLine();
 		if (!metadados.containsKey(filename)) return false;
 		Metadata meta = metadados.get(filename);
-		for (Data d : meta.getChunks()) {
-			d.setData(requestChunk(d.getHashChunk(), d.getPeers())); // Pode dar exception!
+		LinkedList<Data> dataList = new LinkedList<Data>();
+		System.out.println(meta.toString());
+		try{
+			for (Data d : meta.getChunks()) {
+				System.out.println(d.toString());
+				dataList.add(chunkServer.requestChunk(d.getHashChunk(), d.getPeers())); // Pode dar exception!
+			}
+		} catch (NullPointerException e) {
+			e.printStackTrace();
 		}
+		fileHandler.restoreFile(dataList, filename);
 
 		// IDEA Pra cada chunk, seta de volta o byte[] (que foi deletado na
 		// hora de enviar pros peers). Com todos os chunks reconstruímos o
@@ -124,12 +131,7 @@ public class ClientImpl {
 
 	// Faz requisição de um chunk
 	// @params hash_chunk, peers (hash do chunk e lista de peers que possuem o chunk)
-	private byte[] requestChunk(long hash_chunk, LinkedList<String> peers) {
-		// TODO Método p/ pedir chunks dos peers.
-		// IDEA Armazenar lista com todos os hash_chunks que o cliente possui,
-		// Fazer request pelo hash e tals.
-		return null;
-	}
+
 
 	// Lista os nomes de arquivos de um cliente.
 	private void listFiles() {
@@ -151,8 +153,8 @@ public class ClientImpl {
 			try {
 				while (true) {
 					peers = service.getPeers(addr);
-					System.out.println(peers.toString());
-					Thread.sleep(30000);
+					//System.out.println(peers.toString());
+					Thread.sleep(3000);
 				}
 			} catch (Exception e) {}
 		}

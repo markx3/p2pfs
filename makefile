@@ -8,4 +8,4 @@ ws:	broadcast/*.java
 	javac broadcast/*.java
 
 clean:
-	rm *.class; rm broadcast/*.class; rm metadata.dat;
+	rm *.class; rm broadcast/*.class; rm chunks/*; rm metadata/*;

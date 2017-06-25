@@ -25,6 +25,10 @@ public class Metadata implements Serializable {
 		return this.chunks;
 	}
 
+	public void setChunks(LinkedList<Data> chunks) {
+		this.chunks = chunks;
+	}
+
 	public void setFilename(String name) {
 		this.filename = name;
 	}
@@ -35,6 +39,18 @@ public class Metadata implements Serializable {
 
 	public void addChunk(Data data) {
 		chunks.add(data);
+	}
+
+	public void eraseChunks() {
+		for (Data d : chunks) {
+			d.freeData();
+		}
+		System.gc(); // Chama o garbage collector
+	}
+
+	@Override
+	public String toString() {
+		return filename + "\n" + chunks.toString();
 	}
 
 

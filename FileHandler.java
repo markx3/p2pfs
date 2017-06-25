@@ -7,69 +7,77 @@ import java.nio.file.*;
 
 public class FileHandler {
 
+    private final int BUF_SIZE = 64*1024;
+
     public FileHandler () {
 
     }
 
-    // TODO Arrumar divisão de chunks.
-    public Metadata readFileToBytes(String filename)  throws IOException {
-        RandomAccessFile raf = new RandomAccessFile(filename, "r");
-        Metadata m = new Metadata(filename, raf.length());
-        long sizePerChunk = raf.length()/3;
-        long remainingBytes = raf.length() % 3;
-        long maxReadBytes = 64 * 1024; // 8KB
-        for(int i = 1; i <= 3; i++) {
-            if(sizePerChunk < maxReadBytes) {
-                long numReads = sizePerChunk / maxReadBytes;
-                long numRemainingReads = sizePerChunk % maxReadBytes;
-                for(int j = 0; j <numReads; j++) {
-                    byte[] d = readWrite(raf, maxReadBytes);
-                    m.addChunk(new Data(d));
-                }
-                if(numRemainingReads > 0) {
-                    byte[] d = readWrite(raf, numRemainingReads);
-                    m.addChunk(new Data(d));
-                }
-            } else {
-                byte[] d = readWrite(raf, sizePerChunk);
-                m.addChunk(new Data(d));
-            }
 
+    public Metadata readFileToBytes(String filename) throws IOException {
+
+        FileInputStream fis = new FileInputStream(filename);
+        Metadata mdata = new Metadata(filename, fis.getChannel().size());
+        byte[] buf = new byte[BUF_SIZE];
+        int read = 0;
+        while ((read = fis.read(buf)) > 0) {
+            mdata.addChunk(new Data(buf));
         }
-        if(remainingBytes > 0) {
-            byte[] d = readWrite(raf, remainingBytes);
-            m.addChunk(new Data(d));
-        }
-        for(int i = 0; i < m.getChunks().size(); i++)
-            System.out.println(new String(m.getChunks().get(i).getData(), "UTF-8"));
-        raf.close();
-        return m;
+        return mdata;
     }
 
-    public byte[] readWrite(RandomAccessFile raf, long numBytes) throws IOException {
-        byte[] buf = new byte[(int) numBytes];
-        int val = raf.read(buf);
-        if(val != -1) return buf;
-        return buf;
+    public void restoreFile(LinkedList<Data> dataList, String filename) throws FileNotFoundException, IOException, NullPointerException {
+        FileOutputStream stream = new FileOutputStream(filename);
+        for (Data d : dataList) {
+            assert(d.getData() != null);
+            stream.write(d.getData());
+        }
+        stream.close();
     }
 
-    public void serializeMetadata(Object o) throws IOException, ClassNotFoundException {
-		FileOutputStream fos = new FileOutputStream("metadata.dat");
+    public void serializeMetadata(Metadata o) throws IOException, ClassNotFoundException {
+		FileOutputStream fos = new FileOutputStream("metadata/" + o.getFilename() + ".sdi");
 		ObjectOutputStream oos = new ObjectOutputStream(fos);
+        o.eraseChunks();
 		oos.writeObject(o);
 		oos.flush();
 		oos.close();
 		fos.close();
 	}
 
+    public void serializeData(Data o) throws IOException, ClassNotFoundException {
+        FileOutputStream fos = new FileOutputStream("chunks/" + Long.toString(o.getHashChunk()));
+        ObjectOutputStream oos = new ObjectOutputStream(fos);
+        oos.writeObject(o);
+        oos.flush();
+        oos.close();
+        fos.close();
+    }
+
 	public Hashtable <String,Metadata> recoverMetadata() throws IOException, FileNotFoundException, ClassNotFoundException {
-		FileInputStream fis = new FileInputStream("metadata.dat");
-		ObjectInputStream ois = new ObjectInputStream(fis);
-		Hashtable <String,Metadata> aux = (Hashtable<String,Metadata>) ois.readObject();
-		fis.close();
-		ois.close();
+        LinkedList<String> files = sdiFiles("metadata");
+        Hashtable <String,Metadata> aux = new Hashtable<String,Metadata>();
+        for (String fname : files) {
+            FileInputStream fis = new FileInputStream(fname);
+    		ObjectInputStream ois = new ObjectInputStream(fis);
+            Metadata tmp = (Metadata) ois.readObject();
+            aux.put(tmp.getFilename(), tmp);
+            fis.close();
+    		ois.close();
+        }
 		return aux;
 	}
+
+    public LinkedList<String> sdiFiles(String directory) {
+        LinkedList<String> files = new LinkedList<String>();
+        File dir = new File(directory);
+        for (File file : dir.listFiles()) {
+            if (file.getName().endsWith(".sdi")) {
+                files.add(directory + "/" + file.getName());
+            }
+        }
+        return files;
+    }
 
 	public Boolean verifyMetadata() throws IOException, FileNotFoundException {
 		File file = new File("metadata.dat");
