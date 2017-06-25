@@ -50,9 +50,4 @@ public class Data implements Serializable {
 	public void setHashChunk(long hash_chunk) {
 		this.hash_chunk = hash_chunk;
 	}
-
-	@Override
-	public String toString() {
-		return data.toString();
-	}
 }

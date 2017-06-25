@@ -27,7 +27,10 @@ public class ChunkServer {
 
 
 	public boolean deliverChunksToPeers(Metadata mData, LinkedList<String> peers) throws InterruptedException {
-		LinkedList<Data> chunks = mData.getChunks();
+		LinkedList<Data> chunks = new LinkedList<>();
+        for (Data d : mData.getChunks()) {
+            chunks.add(d);
+        }
 		int chunkCount = chunks.size();
 		int peerCount = peers.size();
 		int cpp = chunkCount/peerCount;
