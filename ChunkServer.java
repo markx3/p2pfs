@@ -173,7 +173,7 @@ public class ChunkServer {
                     Data d = chunkHashtable.get(hash);
                     LinkedList<Data> ret = new LinkedList<Data>();
                     ret.add(d);
-                    Thread sender = new Thread(new ChunkSender(ret, s.getInetAddress().toString(), 1252));
+                    Thread sender = new Thread(new ChunkSender(ret, s.getInetAddress().getHostAddress(), 1252));
                     sender.join();
                 } catch (InterruptedException e) {
                     e.printStackTrace();
