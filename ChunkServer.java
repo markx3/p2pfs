@@ -43,7 +43,9 @@ public class ChunkServer {
 		for (String ip : peers) {
             LinkedList<Data> chunksToSend = new LinkedList<Data>();
             for (int i = 0; i < cpp; i++) {
-                chunksToSend.add(chunks.poll());
+                Data tmp = chunks.poll();
+                if (tmp != null)
+                    chunksToSend.add(tmp);
             }
             for (Data d : chunksToSend) {
                 d.addPeer(ip);
