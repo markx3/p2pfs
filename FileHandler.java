@@ -7,7 +7,7 @@ import java.nio.file.*;
 
 public class FileHandler {
 
-    private final int BUF_SIZE = 64*1024;
+    private final int BUF_SIZE = 64*1024*1024;
 
     public FileHandler () {
 

@@ -8,7 +8,7 @@ import broadcast.Peer;
 
 public class Data implements Serializable {
 	private LinkedList<String> peers = new LinkedList<>();
-	private byte[] data = new byte[64*1024];
+	private byte[] data = new byte[64*1024*1024];
 	private long hash_chunk;
 
 	public Data(byte[] d) {

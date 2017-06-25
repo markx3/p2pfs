@@ -45,7 +45,6 @@ public class Metadata implements Serializable {
 		for (Data d : chunks) {
 			d.freeData();
 		}
-		System.gc(); // Chama o garbage collector
 	}
 
 	@Override

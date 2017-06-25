@@ -13,6 +13,7 @@ public class ChunkServer {
     protected Hashtable<Long, Data> chunkHashtable = new Hashtable<Long, Data>();
     protected int chunkCount;
     private FileHandler fileHandler = new FileHandler();
+    private ServerSocket serverConsumer = new ServerSocket(1252);
 
     private final String ip;
 
@@ -49,30 +50,29 @@ public class ChunkServer {
         return true;
 	}
 
-    public Data requestChunk(long hash_chunk, LinkedList<String> peers) throws ClassNotFoundException {
-        Data ret = null;
-        System.out.println("REQUEST CHNK");
+    public Data requestChunk(long hash_chunk, LinkedList<String> peers) throws ClassNotFoundException, IOException {
+
         for (String ip : peers) {
             try {
                 Socket s = new Socket(ip, 1251);
-                //s.setSoTimeout(10000);
+                s.setSoTimeout(10000);
                 ObjectOutputStream out = new ObjectOutputStream(s.getOutputStream());
                 out.writeObject(hash_chunk);
                 out.flush();
-                ret = requestConsumer();
-                if (ret != null)
-                    return ret;
-            } catch (IOException e) {}
-        }
+                } catch (IOException e) {}
+        	}
+        Data ret = requestConsumer();
         return ret;
-	}
+}
 
-    private Data requestConsumer() throws IOException, SocketException, ClassNotFoundException {
-        ServerSocket server = new ServerSocket(1252);
-        Socket s = server.accept();
+    private Data requestConsumer() throws IOException, SocketException, ClassNotFoundException, IOException {
+        Data chunk = null;
+
+        Socket s = serverConsumer.accept();
         s.setSoTimeout(10000);
         ObjectInputStream in = new ObjectInputStream(s.getInputStream());
-        Data chunk = (Data) in.readObject();
+        chunk = (Data) in.readObject();
+
         return chunk;
     }
 
