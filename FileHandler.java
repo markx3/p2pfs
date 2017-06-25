@@ -26,13 +26,17 @@ public class FileHandler {
         return mdata;
     }
 
-    public void restoreFile(LinkedList<Data> dataList, String filename) throws FileNotFoundException, IOException, NullPointerException {
+    public void restoreFile(LinkedList<Data> dataList, String filename) throws FileNotFoundException, IOException {
         FileOutputStream stream = new FileOutputStream(filename);
-        for (Data d : dataList) {
-            assert(d.getData() != null);
-            stream.write(d.getData());
+        try {
+            for (Data d : dataList) {
+                assert(d.getData() != null);
+                stream.write(d.getData());
+            }
+            stream.close();
+        } catch (NullPointerException e) {
+            e.printStackTrace();
         }
-        stream.close();
     }
 
     public void serializeMetadata(Metadata o) throws IOException, ClassNotFoundException {

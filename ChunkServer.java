@@ -174,9 +174,6 @@ public class ChunkServer {
                     LinkedList<Data> ret = new LinkedList<Data>();
                     ret.add(d);
                     Thread sender = new Thread(new ChunkSender(ret, s.getInetAddress().getHostAddress(), 1252));
-                    sender.join();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
                 } catch (ClassNotFoundException|IOException e) {
                     e.printStackTrace();
                 }
