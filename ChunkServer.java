@@ -60,7 +60,7 @@ public class ChunkServer {
             try {
                 System.out.println("request to " + ip);
                 Socket s = new Socket(ip, 1251);
-                s.setSoTimeout(250); // 5s timeout
+                s.setSoTimeout(TIMEOUT); // 5s timeout
                 ObjectOutputStream out = new ObjectOutputStream(s.getOutputStream());
                 out.writeObject(hash_chunk);
                 out.flush();
@@ -71,22 +71,19 @@ public class ChunkServer {
 }
 
     private Data requestConsumer() throws IOException, SocketException, ClassNotFoundException, IOException {
-        LinkedList<Data> chunk = null;
+        Data chunk = null;
 
         Socket s = serverConsumer.accept();
         s.setSoTimeout(TIMEOUT); // 5s timeout
         ObjectInputStream in = new ObjectInputStream(s.getInputStream());
-        chunk = (LinkedList<Data>) in.readObject();
+        chunk = (Data) in.readObject();
 
-        return chunk.poll();
+        return chunk;
     }
 
-    private void storeChunk(LinkedList<Data> chunks) throws IOException, ClassNotFoundException {
-
-        for (Data chunk : chunks) {
-            chunkHashtable.put(chunk.getHashChunk(), chunk);
-            fileHandler.serializeData(chunk);
-        }
+    private void storeChunk(Data chunk) throws IOException, ClassNotFoundException {
+        chunkHashtable.put(chunk.getHashChunk(), chunk);
+        fileHandler.serializeData(chunk);
     }
 
     private class ChunkSender implements Runnable {
@@ -112,15 +109,12 @@ public class ChunkServer {
         }
 
         public void run() {
-            LinkedList<Data> payload = new LinkedList<>();
             for (Data chunk : chunks) {
-                payload.add(chunk);
-            }
                 try {
                     Socket s = new Socket(ip, port);
                     s.setSoTimeout(TIMEOUT);
                     ObjectOutputStream out = new ObjectOutputStream(s.getOutputStream());
-                    out.writeObject(payload);
+                    out.writeObject(chunk);
                     out.flush();
                     Thread.sleep(10);
                 } catch (UnknownHostException e) {
@@ -130,9 +124,9 @@ public class ChunkServer {
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
+            }
         }
     }
-
 
     private class ChunkReceiver implements Runnable  {
         private Thread runner;
@@ -146,7 +140,7 @@ public class ChunkServer {
                     Socket s = server.accept();
                     s.setSoTimeout(TIMEOUT);
                     ObjectInputStream in = new ObjectInputStream(s.getInputStream());
-                    LinkedList<Data> chunk = (LinkedList<Data>) in.readObject();
+                    Data chunk = (Data) in.readObject();
                     storeChunk(chunk);
                 } catch (ClassNotFoundException|IOException e) {
                     e.printStackTrace();

@@ -104,13 +104,13 @@ public class ClientImpl {
 
 	}
 
-	private boolean requestFile() throws FileNotFoundException, IOException, ClassNotFoundException, InterruptedException {
+	private boolean requestFile() throws FileNotFoundException, IOException, ClassNotFoundException {
 		System.out.println("Insira o nome do arquivo a ser requisitado.");
 		String filename = scanner.nextLine();
 		if (!metadados.containsKey(filename)) return false;
 		Metadata meta = metadados.get(filename);
 		LinkedList<Data> dataList = new LinkedList<Data>();
-		System.out.println(meta.toString());
+
 		try{
 			for (Data d : meta.getChunks()) {
 				System.out.println(d.toString());
@@ -119,7 +119,6 @@ public class ClientImpl {
 		} catch (NullPointerException e) {
 			e.printStackTrace();
 		}
-		System.out.println(dataList.toString());
 		fileHandler.restoreFile(dataList, filename);
 
 		// IDEA Pra cada chunk, seta de volta o byte[] (que foi deletado na
