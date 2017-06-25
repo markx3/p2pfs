@@ -16,6 +16,7 @@ public class ChunkServer {
     protected int chunkCount;
     private FileHandler fileHandler = new FileHandler();
     private ServerSocket serverConsumer = new ServerSocket(1252);
+    private final int TIMEOUT = 5000;
 
     private final String ip;
 
@@ -59,7 +60,7 @@ public class ChunkServer {
             try {
                 System.out.println("request to " + ip);
                 Socket s = new Socket(ip, 1251);
-                s.setSoTimeout(5000); // 5s timeout
+                s.setSoTimeout(TIMEOUT); // 5s timeout
                 ObjectOutputStream out = new ObjectOutputStream(s.getOutputStream());
                 out.writeObject(hash_chunk);
                 out.flush();
@@ -73,7 +74,7 @@ public class ChunkServer {
         Data chunk = null;
 
         Socket s = serverConsumer.accept();
-        s.setSoTimeout(5000); // 5s timeout
+        s.setSoTimeout(TIMEOUT); // 5s timeout
         ObjectInputStream in = new ObjectInputStream(s.getInputStream());
         chunk = (Data) in.readObject();
 
@@ -111,6 +112,7 @@ public class ChunkServer {
             for (Data chunk : chunks) {
                 try {
                     Socket s = new Socket(ip, port);
+                    s.setSoTimeout(TIMEOUT);
                     ObjectOutputStream out = new ObjectOutputStream(s.getOutputStream());
                     out.writeObject(chunk);
                     out.flush();
@@ -136,6 +138,7 @@ public class ChunkServer {
             while (true) {
                 try{
                     Socket s = server.accept();
+                    s.setSoTimeout(TIMEOUT);
                     ObjectInputStream in = new ObjectInputStream(s.getInputStream());
                     Data chunk = (Data) in.readObject();
                     storeChunk(chunk);
@@ -157,6 +160,7 @@ public class ChunkServer {
             while (true) {
                 try {
                     Socket s = server.accept();
+                    s.setSoTimeout(TIMEOUT);
                     ObjectInputStream in = new ObjectInputStream(s.getInputStream());
                     Long hash = (Long) in.readObject();
                     Data d = chunkHashtable.get(hash);
