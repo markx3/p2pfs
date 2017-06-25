@@ -8,18 +8,21 @@ import java.nio.file.*;
 import broadcast.BroadcastServer;
 import broadcast.Peer;
 
+// TODO Restaurar hashtable de chunks p/ persistencia
+
 public class ChunkServer {
 
-    protected Hashtable<Long, Data> chunkHashtable = new Hashtable<Long, Data>();
+    protected Hashtable<Long, Data> chunkHashtable;
     protected int chunkCount;
     private FileHandler fileHandler = new FileHandler();
     private ServerSocket serverConsumer = new ServerSocket(1252);
 
     private final String ip;
 
-    public ChunkServer(String addr) throws IOException {
+    public ChunkServer(String addr) throws IOException, ClassNotFoundException {
         this.ip = addr;
         chunkCount = 0;
+        chunkHashtable = fileHandler.recoverChunks();
         Thread receiver = new Thread(new ChunkReceiver());
         Thread listener = new Thread(new RequestListener());
         receiver.start();
@@ -138,24 +141,6 @@ public class ChunkServer {
             }
         }
     }
-
-    /*private class RequestConsumer implements Runnable {
-        private Thread runner;
-        private ServerSocket server = new ServerSocket(1252);
-
-        public ResquestConsumer() {}
-
-        public void run() {
-            while (true) {
-                try {
-                    Socket s = server.accept();
-                    ObjectInputStream in = new ObjectInputStream(s.getInputStream());
-                    Data chunk = (Data) in.readObject();
-
-                }
-            }
-        }
-    }*/
 
     private class RequestListener implements Runnable {
         private Thread runner;

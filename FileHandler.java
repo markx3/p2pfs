@@ -7,7 +7,7 @@ import java.nio.file.*;
 
 public class FileHandler {
 
-    private final int BUF_SIZE = 64*1024*1024;
+    private final int BUF_SIZE = 64*1024;
 
     public FileHandler () {
 
@@ -50,7 +50,7 @@ public class FileHandler {
 	}
 
     public void serializeData(Data o) throws IOException, ClassNotFoundException {
-        FileOutputStream fos = new FileOutputStream("chunks/" + Long.toString(o.getHashChunk()));
+        FileOutputStream fos = new FileOutputStream("chunks/" + Long.toString(o.getHashChunk()) + ".chunk");
         ObjectOutputStream oos = new ObjectOutputStream(fos);
         oos.writeObject(o);
         oos.flush();
@@ -58,8 +58,22 @@ public class FileHandler {
         fos.close();
     }
 
+    public Hashtable <Long, Data> recoverChunks() throws IOException, FileNotFoundException, ClassNotFoundException {
+        LinkedList <String> files = sdiFiles("chunks", ".chunk");
+        Hashtable <Long, Data> aux = new Hashtable<>();
+        for (String fname : files) {
+            FileInputStream fis = new FileInputStream(fname);
+            ObjectInputStream ois = new ObjectInputStream(fis);
+            Data tmp = (Data) ois.readObject();
+            aux.put(tmp.getHashChunk(), tmp);
+            fis.close();
+            ois.close();
+        }
+        return aux;
+    }
+
 	public Hashtable <String,Metadata> recoverMetadata() throws IOException, FileNotFoundException, ClassNotFoundException {
-        LinkedList<String> files = sdiFiles("metadata");
+        LinkedList<String> files = sdiFiles("metadata", ".sdi");
         Hashtable <String,Metadata> aux = new Hashtable<String,Metadata>();
         for (String fname : files) {
             FileInputStream fis = new FileInputStream(fname);
@@ -72,11 +86,11 @@ public class FileHandler {
 		return aux;
 	}
 
-    public LinkedList<String> sdiFiles(String directory) {
+    public LinkedList<String> sdiFiles(String directory, String r) {
         LinkedList<String> files = new LinkedList<String>();
         File dir = new File(directory);
         for (File file : dir.listFiles()) {
-            if (file.getName().endsWith(".sdi")) {
+            if (file.getName().endsWith(r)) {
                 files.add(directory + "/" + file.getName());
             }
         }
