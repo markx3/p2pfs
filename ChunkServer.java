@@ -57,8 +57,9 @@ public class ChunkServer {
 
         for (String ip : peers) {
             try {
+                System.out.println("request to " + ip);
                 Socket s = new Socket(ip, 1251);
-                s.setSoTimeout(10000);
+                s.setSoTimeout(5000); // 5s timeout
                 ObjectOutputStream out = new ObjectOutputStream(s.getOutputStream());
                 out.writeObject(hash_chunk);
                 out.flush();
@@ -72,7 +73,7 @@ public class ChunkServer {
         Data chunk = null;
 
         Socket s = serverConsumer.accept();
-        s.setSoTimeout(10000);
+        s.setSoTimeout(5000); // 5s timeout
         ObjectInputStream in = new ObjectInputStream(s.getInputStream());
         chunk = (Data) in.readObject();
 
@@ -113,9 +114,12 @@ public class ChunkServer {
                     ObjectOutputStream out = new ObjectOutputStream(s.getOutputStream());
                     out.writeObject(chunk);
                     out.flush();
+                    Thread.sleep(10);
                 } catch (UnknownHostException e) {
                     e.printStackTrace();
                 } catch (IOException e) {
+                    e.printStackTrace();
+                } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
             }
