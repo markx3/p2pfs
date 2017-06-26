@@ -189,9 +189,6 @@ public class ChunkServer {
                     sender.start();
                 } catch (ClassNotFoundException|IOException e) {
                     e.printStackTrace();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
             }
         }
     }
