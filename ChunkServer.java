@@ -72,7 +72,7 @@ public class ChunkServer {
             try {
                 System.out.println("request to " + ip);
                 Socket s = new Socket(ip, 1251);
-                s.setSoTimeout(250); // 5s timeout
+                s.setSoTimeout(TIMEOUT); // 5s timeout
                 ObjectOutputStream out = new ObjectOutputStream(s.getOutputStream());
                 out.writeObject(hash_chunk);
                 out.flush();
@@ -88,7 +88,7 @@ public class ChunkServer {
         LinkedList<Data> chunk = null;
 
         Socket s = serverConsumer.accept();
-        s.setSoTimeout(250); // 5s timeout
+        s.setSoTimeout(TIMEOUT); // 5s timeout
         ObjectInputStream in = new ObjectInputStream(s.getInputStream());
         chunk = (LinkedList<Data>) in.readObject();
 
