@@ -52,8 +52,7 @@ public class ChunkServer {
             LinkedList<Data> chunksToSend = new LinkedList<Data>();
             for (int j = 0; j < cpp; j++) {
                 Data tmp = chunks.poll();
-                if (tmp != null)
-                    chunksToSend.add(tmp);
+                chunksToSend.add(tmp);
             }
             for (Data d : chunksToSend) {
                 d.addPeer(ip);
@@ -62,8 +61,8 @@ public class ChunkServer {
             Thread sender1 = new Thread(new ChunkSender(chunksToSend, ip));
             Thread sender2 = new Thread(new ChunkSender(chunksToSend, ip2));
             sender1.start();
-            sender2.start();
             sender1.join();
+            sender2.start();
             sender2.join();
 
 		}
@@ -189,6 +188,7 @@ public class ChunkServer {
                     sender.start();
                 } catch (ClassNotFoundException|IOException e) {
                     e.printStackTrace();
+                }
             }
         }
     }
