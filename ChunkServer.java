@@ -52,7 +52,8 @@ public class ChunkServer {
             LinkedList<Data> chunksToSend = new LinkedList<Data>();
             for (int j = 0; j < cpp; j++) {
                 Data tmp = chunks.poll();
-                chunksToSend.add(tmp);
+                if (tmp != null)
+                    chunksToSend.add(tmp);
             }
             for (Data d : chunksToSend) {
                 d.addPeer(ip);
@@ -70,7 +71,7 @@ public class ChunkServer {
 	}
 
     public Data requestChunk(long hash_chunk, LinkedList<String> peers) throws ClassNotFoundException, IOException {
-        Data ret = null;
+
         for (String ip : peers) {
             try {
                 System.out.println("request to " + ip);
@@ -79,10 +80,9 @@ public class ChunkServer {
                 ObjectOutputStream out = new ObjectOutputStream(s.getOutputStream());
                 out.writeObject(hash_chunk);
                 out.flush();
-                ret = requestConsumer();
-                if (ret != null) return ret;
                 } catch (IOException e) {}
         	}
+        Data ret = requestConsumer();
         return ret;
 }
 
@@ -185,7 +185,6 @@ public class ChunkServer {
                     LinkedList<Data> ret = new LinkedList<Data>();
                     ret.add(d);
                     Thread sender = new Thread(new ChunkSender(ret, s.getInetAddress().getHostAddress(), 1252));
-                    sender.start();
                 } catch (ClassNotFoundException|IOException e) {
                     e.printStackTrace();
                 }
