@@ -74,14 +74,14 @@ public class ChunkServer {
 }
 
     private Data requestConsumer() throws IOException, SocketException, ClassNotFoundException, IOException {
-        Data chunk = null;
+        LinkedList<Data> chunk = null;
 
         Socket s = serverConsumer.accept();
         s.setSoTimeout(TIMEOUT); // 5s timeout
         ObjectInputStream in = new ObjectInputStream(s.getInputStream());
-        chunk = (Data) in.readObject();
+        chunk = (LinkedList<Data>) in.readObject();
 
-        return chunk;
+        return chunk.poll();
     }
 
     private void storeChunk(LinkedList<Data> chunks) throws IOException, ClassNotFoundException {
