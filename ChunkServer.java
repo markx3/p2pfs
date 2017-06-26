@@ -33,92 +33,121 @@ public class ChunkServer {
 
 	public boolean deliverChunksToPeers(Metadata mData, LinkedList<String> peers) throws InterruptedException {
 		LinkedList<Data> chunks = new LinkedList<>();
+        int ccount = 0;
+        boolean flag = false;
         for (Data d : mData.getChunks()) {
             chunks.add(d);
         }
 		int chunkCount = chunks.size();
 		int peerCount = peers.size();
 		int cpp = chunkCount/peerCount;
-        if (chunkCount % peerCount != 0) cpp++;
-		for (int i = 0; i < peers.size(); i++) {
-            String ip = peers.get(i);
-            String ip2 = null;
-            if (i+1 == peers.size())
-                ip2 = peers.get(i-1);
-            else
-                ip2 = peers.get(i+1);
-            LinkedList<Data> chunksToSend = new LinkedList<Data>();
-            for (int j = 0; j < cpp; j++) {
-                Data tmp = chunks.poll();
-                if (tmp != null)
-                    chunksToSend.add(tmp);
-            }
-            for (Data d : chunksToSend) {
-                d.addPeer(ip);
-                d.addPeer(ip2);
-            }
-            Thread sender1 = new Thread(new ChunkSender(chunksToSend, ip));
-            Thread sender2 = new Thread(new ChunkSender(chunksToSend, ip2));
-            sender1.start();
-            sender2.start();
-            sender1.join();
-            sender2.join();
-		}
-        return true;
-	}
+        if (chunkCount % peerCount != 0) flag = true;
 
-    public Data requestChunk(long hash_chunk, LinkedList<String> peers) throws ClassNotFoundException, IOException {
-        Data ret = null;
-        for (String ip : peers) {
-            try {
-                System.out.println("request to " + ip);
-                Socket s = new Socket(ip, 1251);
-                s.setSoTimeout(TIMEOUT); // 5s timeout
-                ObjectOutputStream out = new ObjectOutputStream(s.getOutputStream());
-                out.writeObject(hash_chunk);
-                out.flush();
-                ret = requestConsumer();
-                if (ret != null)
-                    return ret;
-                } catch (IOException e) {}
-        	}
-        return ret;
-}
+        for (int i = 0; i < peerCount; i++) {
+            LinkedList<Data> payload = new LinkedList<>();
+            String ip1 = peers.get(i);
+            String ip2 = null;
+            if (i+1 == peerCount) ip2 = peers.get(i-1);
+            else ip2 = peers.get(i+1);
+
+            for (int j = 0; j < cpp; j++) {
+                if (flag) {
+                    j--;
+                    flag = false;
+                }
+                Data tmp = chunks.remove();
+                tmp.addPeer(ip1);
+                tmp.addPeer(ip2);
+                Thread t1 = new Thread(new ChunkSender(tmp, ip1));
+                t1.start();
+                t1.join();
+                Thread t2 = new Thread(new ChunkSender(tmp, ip2));
+                t2.start();
+                t2.join();
+            }
+        }
+
+
+		// for (int i = 0; i < peers.size(); i++) {
+        //     System.out.println(i);      //
+        //     String ip = peers.get(i);
+        //     String ip2 = null;
+        //     if (i+1 == peers.size())
+        //         ip2 = peers.get(i-1);
+        //     else
+        //         ip2 = peers.get(i+1);
+        //     System.out.println(ip + " " + ip2);
+        //     LinkedList<Data> chunksToSend = new LinkedList<Data>();
+        //     for (int j = 0; j < cpp; j++) {
+        //         Data tmp = chunks.poll();
+        //         if (tmp != null)
+        //             chunksToSend.add(tmp);
+        //     }
+        //     if (flag) {
+        //         Data tmp = chunks.poll();
+        //         if (tmp != null)
+        //             chunksToSend.add(tmp);
+        //         flag = false;
+        //     }
+        //     for (Data d : chunksToSend) {
+        //         d.addPeer(ip);
+        //         d.addPeer(ip2);
+        //     }
+        //     Thread sender1 = new Thread(new ChunkSender(chunksToSend, ip));
+        //     Thread sender2 = new Thread(new ChunkSender(chunksToSend, ip2));
+        //     sender1.start();
+        //     sender2.start();
+        //     sender1.join();
+        //     sender2.join();
+                return true;
+		}
+
+
+    public Data requestChunk(long hash_chunk, String ip) throws ClassNotFoundException, IOException {
+        try {
+            System.out.println("request to " + ip);
+            Socket s = new Socket(ip, 1251);
+            s.setSoTimeout(TIMEOUT); // 5s timeout
+            ObjectOutputStream out = new ObjectOutputStream(s.getOutputStream());
+            out.writeObject(hash_chunk);
+            out.flush();
+            } catch (IOException e) {}
+        return requestConsumer();
+
+    	}
 
     private Data requestConsumer() throws IOException, SocketException, ClassNotFoundException, IOException {
-        LinkedList<Data> chunk = null;
+        Data chunk = null;
 
         Socket s = serverConsumer.accept();
         s.setSoTimeout(TIMEOUT); // 5s timeout
         ObjectInputStream in = new ObjectInputStream(s.getInputStream());
-        chunk = (LinkedList<Data>) in.readObject();
+        chunk = (Data) in.readObject();
 
-        return chunk.poll();
+        return chunk;
     }
 
-    private void storeChunk(LinkedList<Data> chunks) throws IOException, ClassNotFoundException {
-        for (Data chunk : chunks) {
+    private void storeChunk(Data chunk) throws IOException, ClassNotFoundException {
             chunkHashtable.put(chunk.getHashChunk(), chunk);
             fileHandler.serializeData(chunk);
-        }
     }
 
     private class ChunkSender implements Runnable {
         Thread runner;
-        LinkedList<Data> chunks;
+        Data chunk;
         String ip;
         int port;
 
-        public ChunkSender(LinkedList<Data> chunks, String ip) {
-            this.chunks = chunks;
+        public ChunkSender(Data chunk, String ip) {
+            this.chunk = chunk;
             this.ip = ip;
             runner = new Thread(this);
             runner.start();
             port = 1250;
         }
 
-        public ChunkSender(LinkedList<Data> chunks, String ip, int port) {
-            this.chunks = chunks;
+        public ChunkSender(Data chunk, String ip, int port) {
+            this.chunk = chunk;
             this.ip = ip;
             runner = new Thread(this);
             runner.start();
@@ -126,12 +155,12 @@ public class ChunkServer {
         }
 
         public void run() {
-            //for (Data chunk : chunks) {
+
                 try {
                     Socket s = new Socket(ip, port);
                     s.setSoTimeout(TIMEOUT);
                     ObjectOutputStream out = new ObjectOutputStream(s.getOutputStream());
-                    out.writeObject(chunks);
+                    out.writeObject(chunk);
                     out.flush();
                     Thread.sleep(10);
                 } catch (UnknownHostException e) {
@@ -141,8 +170,9 @@ public class ChunkServer {
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-            }
+
     }
+}
 
 
     private class ChunkReceiver implements Runnable  {
@@ -157,7 +187,7 @@ public class ChunkServer {
                     Socket s = server.accept();
                     s.setSoTimeout(TIMEOUT);
                     ObjectInputStream in = new ObjectInputStream(s.getInputStream());
-                    LinkedList<Data> chunks = (LinkedList<Data>) in.readObject();
+                    Data chunks = (Data) in.readObject();
                     storeChunk(chunks);
                 } catch (ClassNotFoundException|IOException e) {
                     e.printStackTrace();
@@ -181,9 +211,7 @@ public class ChunkServer {
                     ObjectInputStream in = new ObjectInputStream(s.getInputStream());
                     Long hash = (Long) in.readObject();
                     Data d = chunkHashtable.get(hash);
-                    LinkedList<Data> ret = new LinkedList<Data>();
-                    ret.add(d);
-                    Thread sender = new Thread(new ChunkSender(ret, s.getInetAddress().getHostAddress(), 1252));
+                    Thread sender = new Thread(new ChunkSender(d, s.getInetAddress().getHostAddress(), 1252));
                     sender.start();
                 } catch (ClassNotFoundException|IOException e) {
                     e.printStackTrace();

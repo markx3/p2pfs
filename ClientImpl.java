@@ -114,8 +114,15 @@ public class ClientImpl {
 		try{
 			for (Data d : meta.getChunks()) {
 				System.out.println(d.toString());
-				dataList.add(chunkServer.requestChunk(d.getHashChunk(), d.getPeers())); // Pode dar exception!
+				Data tmp = null;  // Pode dar exception!
+				Iterator<String> ips = d.getPeers().descendingIterator();
+				while (ips.hasNext() && tmp == null) {
+					tmp = chunkServer.requestChunk(d.getHashChunk(), ips.next());
+				}
+				if (tmp != null && !dataList.contains(tmp))
+					dataList.add(tmp);
 			}
+			System.out.println("meta: " + meta.getChunks().size() + "new: " + dataList.size());
 		} catch (NullPointerException e) {
 			e.printStackTrace();
 		}
