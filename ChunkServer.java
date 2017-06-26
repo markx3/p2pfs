@@ -40,19 +40,32 @@ public class ChunkServer {
 		int peerCount = peers.size();
 		int cpp = chunkCount/peerCount;
         if (chunkCount % peerCount != 0) cpp++;
-		for (String ip : peers) {
+		for (int i = 0; i < peers.size(); i++) {
+            String ip = peers.get(i);
+            String ip2 = null;
+            System.out.println("peers size: " + peers.size());
+            if (i+1 == peers.size())
+                ip2 = peers.get(i-1);
+            else
+                ip2 = peers.get(i+1);
+            System.out.println(ip + " " + ip2);
             LinkedList<Data> chunksToSend = new LinkedList<Data>();
-            for (int i = 0; i < cpp; i++) {
+            for (int j = 0; j < cpp; j++) {
                 Data tmp = chunks.poll();
                 if (tmp != null)
                     chunksToSend.add(tmp);
             }
             for (Data d : chunksToSend) {
                 d.addPeer(ip);
+                d.addPeer(ip2);
             }
-            Thread sender = new Thread(new ChunkSender(chunksToSend, ip));
-            sender.start();
-            sender.join();
+            Thread sender1 = new Thread(new ChunkSender(chunksToSend, ip));
+            Thread sender2 = new Thread(new ChunkSender(chunksToSend, ip2));
+            sender1.start();
+            sender2.start();
+            sender1.join();
+            sender2.join();
+
 		}
         return true;
 	}
@@ -172,7 +185,11 @@ public class ChunkServer {
                     LinkedList<Data> ret = new LinkedList<Data>();
                     ret.add(d);
                     Thread sender = new Thread(new ChunkSender(ret, s.getInetAddress().getHostAddress(), 1252));
+                    sender.start();
+                    sender.join();
                 } catch (ClassNotFoundException|IOException e) {
+                    e.printStackTrace();
+                } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
             }
