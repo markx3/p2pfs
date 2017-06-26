@@ -43,12 +43,10 @@ public class ChunkServer {
 		for (int i = 0; i < peers.size(); i++) {
             String ip = peers.get(i);
             String ip2 = null;
-            System.out.println("peers size: " + peers.size());
             if (i+1 == peers.size())
                 ip2 = peers.get(i-1);
             else
                 ip2 = peers.get(i+1);
-            System.out.println(ip + " " + ip2);
             LinkedList<Data> chunksToSend = new LinkedList<Data>();
             for (int j = 0; j < cpp; j++) {
                 Data tmp = chunks.poll();
@@ -62,16 +60,15 @@ public class ChunkServer {
             Thread sender1 = new Thread(new ChunkSender(chunksToSend, ip));
             Thread sender2 = new Thread(new ChunkSender(chunksToSend, ip2));
             sender1.start();
-            sender1.join();
             sender2.start();
+            sender1.join();
             sender2.join();
-
 		}
         return true;
 	}
 
     public Data requestChunk(long hash_chunk, LinkedList<String> peers) throws ClassNotFoundException, IOException {
-
+        Data ret = null;
         for (String ip : peers) {
             try {
                 System.out.println("request to " + ip);
@@ -80,9 +77,11 @@ public class ChunkServer {
                 ObjectOutputStream out = new ObjectOutputStream(s.getOutputStream());
                 out.writeObject(hash_chunk);
                 out.flush();
+                ret = requestConsumer();
+                if (ret != null)
+                    return ret;
                 } catch (IOException e) {}
         	}
-        Data ret = requestConsumer();
         return ret;
 }
 
@@ -185,6 +184,7 @@ public class ChunkServer {
                     LinkedList<Data> ret = new LinkedList<Data>();
                     ret.add(d);
                     Thread sender = new Thread(new ChunkSender(ret, s.getInetAddress().getHostAddress(), 1252));
+                    sender.start();
                 } catch (ClassNotFoundException|IOException e) {
                     e.printStackTrace();
                 }
