@@ -114,7 +114,9 @@ public class ClientImpl {
 		try{
 			for (Data d : meta.getChunks()) {
 				System.out.println(d.toString());
-				dataList.add(chunkServer.requestChunk(d.getHashChunk(), d.getPeers())); // Pode dar exception!
+				Data tmp = chunkServer.requestChunk(d.getHashChunk(), d.getPeers());
+				if (tmp != null)
+					dataList.add(tmp); // Pode dar exception!
 			}
 		} catch (NullPointerException e) {
 			e.printStackTrace();

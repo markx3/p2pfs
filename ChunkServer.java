@@ -8,8 +8,6 @@ import java.nio.file.*;
 import broadcast.BroadcastServer;
 import broadcast.Peer;
 
-// TODO Restaurar hashtable de chunks p/ persistencia
-
 public class ChunkServer {
 
     protected Hashtable<Long, Data> chunkHashtable;
@@ -40,36 +38,49 @@ public class ChunkServer {
 		int peerCount = peers.size();
 		int cpp = chunkCount/peerCount;
         if (chunkCount % peerCount != 0) cpp++;
-		for (String ip : peers) {
+		for (int i = 0; i < peers.size(); i++) {
             LinkedList<Data> chunksToSend = new LinkedList<Data>();
-            for (int i = 0; i < cpp; i++) {
+            String ip1 = peers.get(i);
+            String ip2 = null;
+            if (i+1 == peers.size())
+                ip2 = peers.get(i-1);
+            else
+                ip2 = peers.get(i+1);
+
+            for (int j = 0; j < cpp; j++) {
                 Data tmp = chunks.poll();
                 if (tmp != null)
                     chunksToSend.add(tmp);
             }
             for (Data d : chunksToSend) {
-                d.addPeer(ip);
+                d.addPeer(ip1);
+                d.addPeer(ip2);
             }
-            Thread sender = new Thread(new ChunkSender(chunksToSend, ip));
-            sender.start();
-            sender.join();
+            Thread t1 = new Thread(new ChunkSender(chunksToSend, ip1));
+            t1.start();
+            t1.join();
+            Thread t2 = new Thread(new ChunkSender(chunksToSend, ip2));
+            t2.start();
+            t2.join();
 		}
         return true;
 	}
 
     public Data requestChunk(long hash_chunk, LinkedList<String> peers) throws ClassNotFoundException, IOException {
-
+        Data ret = null;
         for (String ip : peers) {
             try {
                 System.out.println("request to " + ip);
                 Socket s = new Socket(ip, 1251);
-                s.setSoTimeout(TIMEOUT); // 5s timeout
+                s.setSoTimeout(250); // 5s timeout
                 ObjectOutputStream out = new ObjectOutputStream(s.getOutputStream());
                 out.writeObject(hash_chunk);
                 out.flush();
+                ret = requestConsumer();
+                if (ret != null) return ret;
                 } catch (IOException e) {}
         	}
-        Data ret = requestConsumer();
+
         return ret;
 }
 
@@ -77,7 +88,7 @@ public class ChunkServer {
         LinkedList<Data> chunk = null;
 
         Socket s = serverConsumer.accept();
-        s.setSoTimeout(TIMEOUT); // 5s timeout
+        s.setSoTimeout(250); // 5s timeout
         ObjectInputStream in = new ObjectInputStream(s.getInputStream());
         chunk = (LinkedList<Data>) in.readObject();
 

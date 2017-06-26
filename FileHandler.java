@@ -30,8 +30,10 @@ public class FileHandler {
         FileOutputStream stream = new FileOutputStream(filename);
         try {
             for (Data d : dataList) {
-                assert(d.getData() != null);
-                stream.write(d.getData());
+                if (d.getData() != null) {
+                    stream.write(d.getData());
+                    stream.flush();
+                }
             }
             stream.close();
         } catch (NullPointerException e) {
