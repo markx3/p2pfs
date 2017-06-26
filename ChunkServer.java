@@ -71,7 +71,7 @@ public class ChunkServer {
 	}
 
     public Data requestChunk(long hash_chunk, LinkedList<String> peers) throws ClassNotFoundException, IOException {
-
+        Data ret = null;
         for (String ip : peers) {
             try {
                 System.out.println("request to " + ip);
@@ -80,9 +80,10 @@ public class ChunkServer {
                 ObjectOutputStream out = new ObjectOutputStream(s.getOutputStream());
                 out.writeObject(hash_chunk);
                 out.flush();
+                ret = requestConsumer();
+                if (ret != null) return ret;
                 } catch (IOException e) {}
         	}
-        Data ret = requestConsumer();
         return ret;
 }
 
@@ -186,7 +187,6 @@ public class ChunkServer {
                     ret.add(d);
                     Thread sender = new Thread(new ChunkSender(ret, s.getInetAddress().getHostAddress(), 1252));
                     sender.start();
-                    sender.join();
                 } catch (ClassNotFoundException|IOException e) {
                     e.printStackTrace();
                 } catch (InterruptedException e) {
