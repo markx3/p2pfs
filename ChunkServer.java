@@ -84,9 +84,11 @@ public class ChunkServer {
         return chunk;
     }
 
-    private void storeChunk(Data chunk) throws IOException, ClassNotFoundException {
-        chunkHashtable.put(chunk.getHashChunk(), chunk);
-        fileHandler.serializeData(chunk);
+    private void storeChunk(LinkedList<Data> chunks) throws IOException, ClassNotFoundException {
+        for (Data chunk : chunks) {
+            chunkHashtable.put(chunk.getHashChunk(), chunk);
+            fileHandler.serializeData(chunk);
+        }
     }
 
     private class ChunkSender implements Runnable {
@@ -112,12 +114,12 @@ public class ChunkServer {
         }
 
         public void run() {
-            for (Data chunk : chunks) {
+            //for (Data chunk : chunks) {
                 try {
                     Socket s = new Socket(ip, port);
                     s.setSoTimeout(TIMEOUT);
                     ObjectOutputStream out = new ObjectOutputStream(s.getOutputStream());
-                    out.writeObject(chunk);
+                    out.writeObject(chunks);
                     out.flush();
                     Thread.sleep(10);
                 } catch (UnknownHostException e) {
@@ -128,8 +130,8 @@ public class ChunkServer {
                     e.printStackTrace();
                 }
             }
-        }
     }
+
 
     private class ChunkReceiver implements Runnable  {
         private Thread runner;
@@ -143,8 +145,8 @@ public class ChunkServer {
                     Socket s = server.accept();
                     s.setSoTimeout(TIMEOUT);
                     ObjectInputStream in = new ObjectInputStream(s.getInputStream());
-                    Data chunk = (Data) in.readObject();
-                    storeChunk(chunk);
+                    LinkedList<Data> chunks = (LinkedList<Data>) in.readObject();
+                    storeChunk(chunks);
                 } catch (ClassNotFoundException|IOException e) {
                     e.printStackTrace();
                 }
