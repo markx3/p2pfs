@@ -11,7 +11,7 @@ import broadcast.Config;
 
 /*
  * IDEA Usar portas diferentes (pre-definidas) em diferentes ServerSockets
- * 		p/ diferentes tipos de requisições. Vamos usar TCP ou UDP?
+ * 		p/ diferentes tipos de requisicoes. Vamos usar TCP ou UDP?
  */
 
 public class ClientImpl {
@@ -76,21 +76,21 @@ public class ClientImpl {
 				logout();
 				break;
 			default:
-				System.out.println("Opção inválida.");
+				System.out.println("Opcao invalida.");
 		}
 	}
 
-	// Lê um arquivo, transforma em chunks, envia aos peers e serializa
-	// Hashtable de metadados após término das operações.
+	// Le um arquivo, transforma em chunks, envia aos peers e serializa
+	// Hashtable de metadados apos termino das operacoes.
 	// IDEA Paralelizar envio de chunks aos peers.
-	// TODO Armazenar apenas nome do arquivo caso usuário passe um caminho.
+	// TODO Armazenar apenas nome do arquivo caso usuario passe um caminho.
 	// Ex. /tmp/teste.txt (guardar apenas teste.txt)
 	private boolean storeFile() throws IOException, ClassNotFoundException, NoSuchFileException, DirectoryNotEmptyException, InterruptedException {
 		System.out.println("Insira o caminho para o arquivo.");
 		String filename = scanner.nextLine();
 		File file = new File(filename);
 		if(!file.exists()) {
-			System.out.println("Arquivo não existe.");
+			System.out.println("Arquivo nao existe.");
 			return false;
 		}
 		Metadata tmp = fileHandler.readFileToBytes(file);
@@ -123,14 +123,14 @@ public class ClientImpl {
 		fileHandler.restoreFile(dataList, filename);
 
 		// IDEA Pra cada chunk, seta de volta o byte[] (que foi deletado na
-		// hora de enviar pros peers). Com todos os chunks reconstruímos o
+		// hora de enviar pros peers). Com todos os chunks reconstruimos o
 		// arquivo e gg.
 		// TODO Reconstruir arquivo a partir da lista de chunks
 
 		return true;
 	}
 
-	// Faz requisição de um chunk
+	// Faz requisicao de um chunk
 	// @params hash_chunk, peers (hash do chunk e lista de peers que possuem o chunk)
 
 
