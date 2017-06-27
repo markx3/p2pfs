@@ -12,11 +12,11 @@ public class BroadcastServerImpl implements BroadcastServer {
   private LinkedList<String> peers = new LinkedList<>();
 
   public BroadcastServerImpl() {
-    LOGGER.setLevel(Level.ALL);
-    ConsoleHandler handler = new ConsoleHandler();
-    handler.setFormatter(new SimpleFormatter());
-    handler.setLevel(Level.ALL);
-    LOGGER.addHandler(handler);
+    //LOGGER.setLevel(Level.ALL);
+    //ConsoleHandler handler = new ConsoleHandler();
+    //handler.setFormatter(new SimpleFormatter());
+    //handler.setLevel(Level.ALL);
+    //LOGGER.addHandler(handler);
 
   }
 
