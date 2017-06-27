@@ -10,7 +10,6 @@ import broadcast.Peer;
 
 public class ChunkServer {
 
-    protected Hashtable<Long, Data> chunkHashtable;
     protected int chunkCount;
     private FileHandler fileHandler = new FileHandler();
     private ServerSocket serverConsumer = new ServerSocket(1252);
@@ -21,7 +20,6 @@ public class ChunkServer {
     public ChunkServer(String addr) throws IOException, ClassNotFoundException {
         this.ip = addr;
         chunkCount = 0;
-        chunkHashtable = fileHandler.recoverChunks();
         Thread receiver = new Thread(new ChunkReceiver());
         Thread listener = new Thread(new RequestListener());
         receiver.start();
@@ -97,7 +95,6 @@ public class ChunkServer {
 
     private void storeChunk(LinkedList<Data> chunks) throws IOException, ClassNotFoundException {
         for (Data chunk : chunks) {
-            chunkHashtable.put(chunk.getHashChunk(), chunk);
             fileHandler.serializeData(chunk);
         }
     }
@@ -179,7 +176,7 @@ public class ChunkServer {
                     s.setSoTimeout(TIMEOUT);
                     ObjectInputStream in = new ObjectInputStream(s.getInputStream());
                     Long hash = (Long) in.readObject();
-                    Data d = chunkHashtable.get(hash);
+                    Data d = fileHandler.recoverSingleChunk(hash);
                     LinkedList<Data> ret = new LinkedList<Data>();
                     ret.add(d);
                     Thread sender = new Thread(new ChunkSender(ret, s.getInetAddress().getHostAddress(), 1252));

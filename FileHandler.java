@@ -74,6 +74,18 @@ public class FileHandler {
         return aux;
     }
 
+    public Data recoverSingleChunk(long hash_chunk) throws IOException, FileNotFoundException, ClassNotFoundException {
+        String fname = Long.toString(hash_chunk) + ".chunk";
+
+        FileInputStream fis = new FileInputStream(fname);
+        ObjectInputStream ois = new ObjectInputStream(fis);
+        Data ret = (Data) ois.readObject();
+        fis.close();
+        ois.close();
+
+        return ret;
+    }
+
 	public Hashtable <String,Metadata> recoverMetadata() throws IOException, FileNotFoundException, ClassNotFoundException {
         LinkedList<String> files = sdiFiles("metadata", ".sdi");
         Hashtable <String,Metadata> aux = new Hashtable<String,Metadata>();
