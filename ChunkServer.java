@@ -177,9 +177,11 @@ public class ChunkServer {
                     ObjectInputStream in = new ObjectInputStream(s.getInputStream());
                     Long hash = (Long) in.readObject();
                     Data d = fileHandler.recoverSingleChunk(hash);
-                    LinkedList<Data> ret = new LinkedList<Data>();
-                    ret.add(d);
-                    Thread sender = new Thread(new ChunkSender(ret, s.getInetAddress().getHostAddress(), 1252));
+                    if (d != null) {
+                        LinkedList<Data> ret = new LinkedList<Data>();
+                        ret.add(d);
+                        Thread sender = new Thread(new ChunkSender(ret, s.getInetAddress().getHostAddress(), 1252));
+                    }
                 } catch (ClassNotFoundException|IOException e) {
                     e.printStackTrace();
                 }

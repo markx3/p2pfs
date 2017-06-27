@@ -82,6 +82,12 @@ public class FileHandler {
     public Data recoverSingleChunk(long hash_chunk) throws IOException, FileNotFoundException, ClassNotFoundException {
         String fname = "chunks/" + Long.toString(hash_chunk) + ".chunk";
 
+        File file = new File(fname);
+		if(!file.exists()) {
+			System.out.println("Arquivo nao existe.");
+			return null;
+		}
+
         FileInputStream fis = new FileInputStream(fname);
         ObjectInputStream ois = new ObjectInputStream(fis);
         Data ret = (Data) ois.readObject();
