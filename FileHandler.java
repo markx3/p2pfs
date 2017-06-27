@@ -60,6 +60,11 @@ public class FileHandler {
         fos.close();
     }
 
+    // DEPRECATED
+    // recoverChunks has been deprecated since our last version
+    // and will be deleted in the future
+    // REASON: Stopped storing all chunks in memory.
+    //                                          Still wondering why we did that.
     public Hashtable <Long, Data> recoverChunks() throws IOException, FileNotFoundException, ClassNotFoundException {
         LinkedList <String> files = sdiFiles("chunks", ".chunk");
         Hashtable <Long, Data> aux = new Hashtable<>();
