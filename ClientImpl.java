@@ -93,8 +93,7 @@ public class ClientImpl {
 			System.out.println("Arquivo não existe.");
 			return false;
 		}
-		Metadata tmp = fileHandler.readFileToBytes(filename);
-
+		Metadata tmp = fileHandler.readFileToBytes(file);
 		chunkServer.deliverChunksToPeers(tmp, peers); // Envia chunks aos peers
 		fileHandler.serializeMetadata(tmp); // Serializa o arquivo .sdi p/ persistencia de metadados
 		metadados.put(tmp.getFilename(), tmp); // Coloca metadado numa hashtable

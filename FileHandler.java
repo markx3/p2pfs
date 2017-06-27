@@ -14,10 +14,10 @@ public class FileHandler {
     }
 
 
-    public Metadata readFileToBytes(String filename) throws IOException {
+    public Metadata readFileToBytes(File file) throws IOException {
 
-        FileInputStream fis = new FileInputStream(filename);
-        Metadata mdata = new Metadata(filename, fis.getChannel().size());
+        FileInputStream fis = new FileInputStream(file.getPath());
+        Metadata mdata = new Metadata(file.toPath().getFileName().toString(), fis.getChannel().size());
         byte[] buf = new byte[BUF_SIZE];
         int read = 0;
         while ((read = fis.read(buf)) > 0) {
